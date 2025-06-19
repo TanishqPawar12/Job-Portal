@@ -9,33 +9,44 @@ import JobApplication from "../models/JobApplication.js";
 //Register a new company
 export const registerCompany = async (req, res) => {
     const { name, email, password } = req.body;
-
     const imageFile = req.file;
 
-
-
     if (!name || !email || !password || !imageFile) {
-        return res.json({ success: false, message: "Missing details" })
+        return res.json({ success: false, message: "Missing details" });
     }
 
     try {
-        const companyExists = await Company.findOne({ email })
+        const companyExists = await Company.findOne({ email: email.trim().toLowerCase() });
 
         if (companyExists) {
-            return res.json({ success: false, message: "Company already registered" })
+            return res.json({ success: false, message: "Company already registered" });
         }
 
-        const salt = await bcrypt.genSalt(10)
-        const hashPassword = await bcrypt.hash(password, salt)
+        const salt = await bcrypt.genSalt(10);
+        const hashPassword = await bcrypt.hash(password, salt);
 
-        const imageUpload = await cloudinary.uploader.upload(imageFile.path)
+        // Upload image to Cloudinary using buffer
+        const streamUpload = () => {
+            return new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { resource_type: "image" },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
+                stream.end(imageFile.buffer); // Send buffer here
+            });
+        };
+
+        const imageUpload = await streamUpload();
 
         const company = await Company.create({
             name,
             email,
             password: hashPassword,
             image: imageUpload.secure_url,
-        })
+        });
 
         res.json({
             success: true,
@@ -46,13 +57,13 @@ export const registerCompany = async (req, res) => {
                 image: company.image
             },
             token: generateToken(company._id)
-        })
+        });
 
     } catch (error) {
-        res.json({ success: false, message: error.message })
+        res.json({ success: false, message: error.message });
     }
+};
 
-}
 
 //Company login
 export const loginCompany = async (req, res) => {
