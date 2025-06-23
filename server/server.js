@@ -29,6 +29,11 @@ app.get('/health', (req, res) => {
   res.status(200).send('OK');
 });
 
+// Health check route for HEAD (used by monitors like UptimeRobot)
+app.head('/health', (req, res) => {
+  res.status(200).end();  // No body in HEAD response
+});
+
 
 // 👉 Raw body parser for Clerk Webhooks (Only on /webhooks route)
 app.use('/webhooks', bodyParser.raw({ type: '*/*' }));
