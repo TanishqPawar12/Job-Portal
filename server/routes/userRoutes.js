@@ -4,6 +4,8 @@ import upload from '../config/multer.js'
 
 const router = express.Router()
 
+
+
 //Get user data
 router.get('/user', getUserData)
 

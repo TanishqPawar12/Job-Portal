@@ -25,6 +25,11 @@ app.use(express.json());
 app.use(clerkMiddleware());
 
 
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
+
 // 👉 Raw body parser for Clerk Webhooks (Only on /webhooks route)
 app.use('/webhooks', bodyParser.raw({ type: '*/*' }));
 
@@ -50,3 +55,4 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
 });
+
